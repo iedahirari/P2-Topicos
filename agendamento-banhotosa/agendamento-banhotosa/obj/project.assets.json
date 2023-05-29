@@ -2794,11 +2794,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\iedah\\OneDrive\\Documentos\\agendamento-banhotosa\\agendamento-banhotosa\\agendamento-banhotosa.csproj",
+      "projectUniqueName": "C:\\Users\\iedah\\OneDrive\\Documentos\\GitHub\\P2-Topicos\\agendamento-banhotosa\\agendamento-banhotosa\\agendamento-banhotosa.csproj",
       "projectName": "agendamento-banhotosa",
-      "projectPath": "C:\\Users\\iedah\\OneDrive\\Documentos\\agendamento-banhotosa\\agendamento-banhotosa\\agendamento-banhotosa.csproj",
+      "projectPath": "C:\\Users\\iedah\\OneDrive\\Documentos\\GitHub\\P2-Topicos\\agendamento-banhotosa\\agendamento-banhotosa\\agendamento-banhotosa.csproj",
       "packagesPath": "C:\\Users\\iedah\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\iedah\\OneDrive\\Documentos\\agendamento-banhotosa\\agendamento-banhotosa\\obj\\",
+      "outputPath": "C:\\Users\\iedah\\OneDrive\\Documentos\\GitHub\\P2-Topicos\\agendamento-banhotosa\\agendamento-banhotosa\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "C:\\Users\\iedah\\AppData\\Roaming\\NuGet\\NuGet.Config",
@@ -2863,7 +2863,7 @@
             "privateAssets": "none"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\7.0.203\\RuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\7.0.302\\RuntimeIdentifierGraph.json"
       }
     }
   }

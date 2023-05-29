@@ -32,7 +32,7 @@
             txtTelefone = new MaskedTextBox();
             label4 = new Label();
             label3 = new Label();
-            dataHoraDateTimePicker = new DateTimePicker();
+            DateTimePicker = new DateTimePicker();
             label2 = new Label();
             label1 = new Label();
             titulo = new Label();
@@ -79,14 +79,14 @@
             label3.TabIndex = 24;
             label3.Text = "Efetuar o cadastro caso não tenha antes de realizar o agendamento.";
             // 
-            // dataHoraDateTimePicker
+            // DateTimePicker
             // 
-            dataHoraDateTimePicker.ImeMode = ImeMode.NoControl;
-            dataHoraDateTimePicker.Location = new Point(194, 359);
-            dataHoraDateTimePicker.MinDate = new DateTime(2023, 5, 26, 0, 0, 0, 0);
-            dataHoraDateTimePicker.Name = "dataHoraDateTimePicker";
-            dataHoraDateTimePicker.Size = new Size(140, 26);
-            dataHoraDateTimePicker.TabIndex = 23;
+            DateTimePicker.ImeMode = ImeMode.NoControl;
+            DateTimePicker.Location = new Point(194, 359);
+            DateTimePicker.MinDate = new DateTime(2023, 5, 26, 0, 0, 0, 0);
+            DateTimePicker.Name = "DateTimePicker";
+            DateTimePicker.Size = new Size(140, 26);
+            DateTimePicker.TabIndex = 23;
             // 
             // label2
             // 
@@ -114,7 +114,7 @@
             // 
             titulo.AutoSize = true;
             titulo.Font = new Font("Cascadia Code", 27.75F, FontStyle.Bold, GraphicsUnit.Point);
-            titulo.Location = new Point(194, 9);
+            titulo.Location = new Point(194, 22);
             titulo.Name = "titulo";
             titulo.Size = new Size(264, 49);
             titulo.TabIndex = 20;
@@ -195,7 +195,7 @@
             // checkedListBox1
             // 
             checkedListBox1.FormattingEnabled = true;
-            checkedListBox1.Location = new Point(561, 221);
+            checkedListBox1.Location = new Point(561, 211);
             checkedListBox1.Name = "checkedListBox1";
             checkedListBox1.Size = new Size(195, 151);
             checkedListBox1.TabIndex = 35;
@@ -248,6 +248,7 @@
             // 
             AutoScaleDimensions = new SizeF(9F, 19F);
             AutoScaleMode = AutoScaleMode.Font;
+            BackColor = Color.FromArgb(153, 199, 183);
             ClientSize = new Size(784, 511);
             Controls.Add(button3);
             Controls.Add(button2);
@@ -264,7 +265,7 @@
             Controls.Add(txtTelefone);
             Controls.Add(label4);
             Controls.Add(label3);
-            Controls.Add(dataHoraDateTimePicker);
+            Controls.Add(DateTimePicker);
             Controls.Add(label2);
             Controls.Add(label1);
             Controls.Add(titulo);
@@ -282,7 +283,7 @@
         private MaskedTextBox txtTelefone;
         private Label label4;
         private Label label3;
-        private DateTimePicker dataHoraDateTimePicker;
+        private DateTimePicker DateTimePicker;
         private Label label2;
         private Label label1;
         private Label titulo;

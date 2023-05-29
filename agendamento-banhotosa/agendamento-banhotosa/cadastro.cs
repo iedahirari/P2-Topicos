@@ -14,7 +14,7 @@ using System.Data.SqlClient;
 
 namespace agendamento_banhotosa
 {
-    
+
     public partial class cadastro : Form
     {
         private SqlConnection connection;
@@ -90,38 +90,38 @@ namespace agendamento_banhotosa
                     MessageBox.Show("Cliente cadastrado com sucesso.", "Sucesso");
                 }
 
-                
-                    string petNome1 = "";
-                    string petRaca1 = "";
-                    string petIdade1 ="";
-                    string petNome2 = "";
-                    string petRaca2 = "";
-                    string petIdade2 = "";
-                    string petNome3 = "";
-                    string petRaca3 = "";
-                    string petIdade3 = "";
-                    string petNome4 = "";
-                    string petRaca4 = "";
-                    string petIdade4 = "";
-                    
-                    petNome1 = txtPetNome1.Text;
-                    petRaca1 = txtPetRaca1.Text;
-                    petIdade1 = (txtPetIdade1.Text);
-                    petNome2 = txtPetNome1.Text;
-                    petRaca2 = txtPetRaca1.Text;
-                    petIdade2 = (txtPetIdade1.Text);
-                    petNome3 = txtPetNome1.Text;
-                    petRaca3 = txtPetRaca1.Text;
-                    petIdade3 = (txtPetIdade1.Text);
-                    petNome4 = txtPetNome1.Text;
-                    petRaca4 = txtPetRaca1.Text;
-                    petIdade4 = (txtPetIdade1.Text);
 
-                
+                string petNome1 = "";
+                string petRaca1 = "";
+                string petIdade1 = "";
+                string petNome2 = "";
+                string petRaca2 = "";
+                string petIdade2 = "";
+                string petNome3 = "";
+                string petRaca3 = "";
+                string petIdade3 = "";
+                string petNome4 = "";
+                string petRaca4 = "";
+                string petIdade4 = "";
+
+                petNome1 = txtPetNome1.Text;
+                petRaca1 = txtPetRaca1.Text;
+                petIdade1 = (txtPetIdade1.Text);
+                petNome2 = txtPetNome2.Text;
+                petRaca2 = txtPetRaca2.Text;
+                petIdade2 = (txtPetIdade2.Text);
+                petNome3 = txtPetNome3.Text;
+                petRaca3 = txtPetRaca3.Text;
+                petIdade3 = (txtPetIdade3.Text);
+                petNome4 = txtPetNome4.Text;
+                petRaca4 = txtPetRaca4.Text;
+                petIdade4 = (txtPetIdade4.Text);
+
+
                 string queryInserirPet = "INSERT INTO pets (NOME_1, RACA_1, IDADE_1,NOME_2, RACA_2, IDADE_2,NOME_3, RACA_3, IDADE_3,NOME_4, RACA_4, IDADE_4, ClienteID) " +
                                              "VALUES (@Nome_1, @Raca_1, @Idade_1, @Nome_2, @Raca_2, @Idade_2, @Nome_3, @Raca_3, @Idade_3, @Nome_4, @Raca_4, @Idade_4 ,SCOPE_IDENTITY())";
-                    SqlCommand commandInserirPet = new SqlCommand(queryInserirPet, connection);
-                
+                SqlCommand commandInserirPet = new SqlCommand(queryInserirPet, connection);
+
                 commandInserirPet.Parameters.AddWithValue("@NOME_1", petNome1);
                 commandInserirPet.Parameters.AddWithValue("@RACA_1", petRaca1);
                 commandInserirPet.Parameters.AddWithValue("@IDADE_1", petIdade1);
@@ -141,7 +141,7 @@ namespace agendamento_banhotosa
 
 
 
-                }
+            }
             catch (Exception ex)
             {
                 MessageBox.Show("Erro ao cadastrar cliente: " + ex.Message, "Erro");
@@ -165,9 +165,9 @@ namespace agendamento_banhotosa
                 label13.Visible = true;
                 label12.Visible = true;
                 label11.Visible = true;
-                textBoxPet2Nome.Visible = true;
-                textBoxPet2Raca.Visible = true;
-                textBoxPet2Idade.Visible = true;
+                txtPetNome2.Visible = true;
+                txtPetRaca2.Visible = true;
+                txtPetIdade2.Visible = true;
                 checkBox3.Visible = true;
             }
             else
@@ -176,9 +176,9 @@ namespace agendamento_banhotosa
                 label13.Visible = false;
                 label12.Visible = false;
                 label11.Visible = false;
-                textBoxPet2Nome.Visible = false;
-                textBoxPet2Raca.Visible = false;
-                textBoxPet2Idade.Visible = false;
+                txtPetNome2.Visible = false;
+                txtPetRaca2.Visible = false;
+                txtPetIdade2.Visible = false;
                 checkBox3.Visible = false;
             }
         }
@@ -195,9 +195,9 @@ namespace agendamento_banhotosa
                 label16.Visible = true;
                 label15.Visible = true;
                 label14.Visible = true;
-                textBoxPet3Nome.Visible = true;
-                textBoxPet3Raca.Visible = true;
-                textBoxPet3Idade.Visible = true;
+                txtPetNome3.Visible = true;
+                txtPetRaca3.Visible = true;
+                txtPetIdade3.Visible = true;
                 checkBox2.Visible = true;
             }
             else
@@ -206,9 +206,9 @@ namespace agendamento_banhotosa
                 label16.Visible = false;
                 label15.Visible = false;
                 label14.Visible = false;
-                textBoxPet3Nome.Visible = false;
-                textBoxPet3Raca.Visible = false;
-                textBoxPet3Idade.Visible = false;
+                txtPetNome3.Visible = false;
+                txtPetRaca3.Visible = false;
+                txtPetIdade3.Visible = false;
                 checkBox2.Visible = false;
             }
         }
@@ -220,10 +220,10 @@ namespace agendamento_banhotosa
                 label19.Visible = true;
                 label17.Visible = true;
                 label18.Visible = true;
-                textBoxPet4Nome.Visible = true;
-                textBoxPet4Raca.Visible = true;
-                textBoxPet4Idade.Visible = true;
-                
+                txtPetNome4.Visible = true;
+                txtPetRaca4.Visible = true;
+                txtPetIdade4.Visible = true;
+
             }
             else
             {
@@ -231,11 +231,16 @@ namespace agendamento_banhotosa
                 label19.Visible = false;
                 label17.Visible = false;
                 label18.Visible = false;
-                textBoxPet4Nome.Visible = false;
-                textBoxPet4Raca.Visible = false;
-                textBoxPet4Idade.Visible = false;
-               
+                txtPetNome4.Visible = false;
+                txtPetRaca4.Visible = false;
+                txtPetIdade4.Visible = false;
+
             }
+        }
+
+        private void cadastro_Load(object sender, EventArgs e)
+        {
+
         }
     }
 }
