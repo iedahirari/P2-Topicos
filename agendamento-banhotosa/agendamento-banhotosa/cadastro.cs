@@ -1,246 +1,133 @@
-﻿using MySqlX.XDevAPI;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
-using System.Data.SqlClient;
+using System.Globalization;
+using MySqlConnector;
 
+namespace agendamento_banhotosa;
 
-
-namespace agendamento_banhotosa
+public partial class Cadastro : Form
 {
+    internal string TelefoneSalvo { get; private set; } = "";
+    private readonly long clienteId;
+    private readonly long[] petIds = new long[4];
+    private readonly Control[][] camposPets;
+    private readonly TextBox[] nomes;
+    private readonly TextBox[] racas;
+    private readonly TextBox[] idades;
 
-    public partial class cadastro : Form
+    public Cadastro() : this(null) { }
+
+    internal Cadastro(Cliente? cliente)
     {
-        private SqlConnection connection;
-        public cadastro()
+        InitializeComponent();
+        Text = cliente is null ? "Cadastrar cliente e pets" : "Atualizar cliente e pets";
+        FormBorderStyle = FormBorderStyle.FixedDialog;
+        MaximizeBox = false;
+        cadastrar.Text = "Salvar";
+        txtTelefone.Mask = "";
+        txtTelefone.MaxLength = 20;
+        txtTelefone.AccessibleName = "Telefone com DDD";
+        txtCEP.Mask = "00000-000";
+        txtNome.MaxLength = 120;
+        txtEndereco.MaxLength = 200;
+        txtNumero.MaxLength = 20;
+        txtBairro.MaxLength = txtCidade.MaxLength = 80;
+        nomes = [txtPetNome1, txtPetNome2, txtPetNome3, txtPetNome4];
+        racas = [txtPetRaca1, txtPetRaca2, txtPetRaca3, txtPetRaca4];
+        idades = [txtPetIdade1, txtPetIdade2, txtPetIdade3, txtPetIdade4];
+        camposPets = [
+            [label13, label12, label11, txtPetNome2, txtPetRaca2, txtPetIdade2],
+            [label16, label15, label14, txtPetNome3, txtPetRaca3, txtPetIdade3],
+            [label19, label18, label17, txtPetNome4, txtPetRaca4, txtPetIdade4]
+        ];
+        for (int i = 0; i < 4; i++)
         {
-            InitializeComponent();
-
-
-            // conexão com o banco de dados
-            string connectionString = "server=localhost;database=agendamento;uid=root;pwd='1234'";
-            connection = new SqlConnection(connectionString);
+            nomes[i].MaxLength = racas[i].MaxLength = 80;
+            idades[i].MaxLength = 5;
+            nomes[i].AccessibleName = $"Nome do pet {i + 1}";
+            racas[i].AccessibleName = $"Raça do pet {i + 1}";
+            idades[i].AccessibleName = $"Idade em anos do pet {i + 1}";
         }
-
-        private void cadastrar_Click(object sender, EventArgs e)
+        var ordem = new Control[] { txtNome, txtTelefone, txtEndereco, txtNumero, txtBairro,
+            txtCidade, txtCEP, txtPetNome1, txtPetRaca1, txtPetIdade1, checkBox1,
+            txtPetNome2, txtPetRaca2, txtPetIdade2, checkBox3, txtPetNome3,
+            txtPetRaca3, txtPetIdade3, checkBox2, txtPetNome4, txtPetRaca4, txtPetIdade4, cadastrar };
+        for (int i = 0; i < ordem.Length; i++) ordem[i].TabIndex = i;
+        if (cliente is not null)
         {
-            string nome = txtNome.Text;
-            string telefone = txtTelefone.Text;
-            string endereco = txtEndereco.Text;
-            string numero = txtNumero.Text;
-            string bairro = txtBairro.Text;
-            string cidade = txtCidade.Text;
-            string cep = txtCEP.Text;
-
-            try
+            if (cliente.Pets.Count > 4)
+                throw new InvalidOperationException("Este cliente possui mais de quatro pets. O formulário não pode editar este Cadastro.");
+            clienteId = cliente.Id;
+            txtNome.Text = cliente.Nome;
+            txtTelefone.Text = cliente.Telefone;
+            txtTelefone.ReadOnly = true;
+            txtEndereco.Text = cliente.Endereco;
+            txtNumero.Text = cliente.Numero;
+            txtBairro.Text = cliente.Bairro;
+            txtCidade.Text = cliente.Cidade;
+            txtCEP.Text = cliente.Cep;
+            checkBox1.Checked = cliente.Pets.Count >= 2;
+            checkBox3.Checked = cliente.Pets.Count >= 3;
+            checkBox2.Checked = cliente.Pets.Count >= 4;
+            checkBox1.Enabled = cliente.Pets.Count < 2;
+            checkBox3.Enabled = cliente.Pets.Count < 3;
+            checkBox2.Enabled = cliente.Pets.Count < 4;
+            for (int i = 0; i < cliente.Pets.Count; i++)
             {
-                // Abre a conexão
-                connection.Open();
-
-                // Verifica se o cliente já está cadastrado com base no número de telefone
-                string queryVerificarCliente = "SELECT COUNT(*) FROM Clientes WHERE Telefone = @TELEFONE";
-                SqlCommand commandVerificarCliente = new SqlCommand(queryVerificarCliente, connection);
-                commandVerificarCliente.Parameters.AddWithValue("@TELEFONE", telefone);
-
-                int count = (int)commandVerificarCliente.ExecuteScalar();
-
-                if (count > 0)
-                {
-                    DialogResult dialogResult = MessageBox.Show("Cliente já cadastrado. Deseja atualizar os dados?", "Confirmação", MessageBoxButtons.YesNo);
-                    if (dialogResult == DialogResult.Yes)
-                    {
-                        // Obtém os novos dados do cliente
-                        string queryAtualizarCliente = "UPDATE Clientes SET Nome = @NOME, Endereco = @ENDERECO, Numero = @NUMERO, Bairro = @BAIRRO, Cidade = @CIDADE, CEP = @CEP WHERE Telefone = @TELEFONE";
-                        SqlCommand commandAtualizarCliente = new SqlCommand(queryAtualizarCliente, connection);
-                        commandAtualizarCliente.Parameters.AddWithValue("@NONE", nome);
-                        commandAtualizarCliente.Parameters.AddWithValue("@ENDERECO", endereco);
-                        commandAtualizarCliente.Parameters.AddWithValue("@NUMERO", numero);
-                        commandAtualizarCliente.Parameters.AddWithValue("@BAIRRO", bairro);
-                        commandAtualizarCliente.Parameters.AddWithValue("@CIDADE", cidade);
-                        commandAtualizarCliente.Parameters.AddWithValue("@CEP", cep);
-                        commandAtualizarCliente.Parameters.AddWithValue("@TELEFONE", telefone);
-
-                        int rowsUpdated = commandAtualizarCliente.ExecuteNonQuery();
-
-                        MessageBox.Show("Dados do cliente atualizados com sucesso.", "Sucesso");
-                    }
-                }
-                else
-                {
-                    // Insere os dados do novo cliente no banco de dados
-                    string queryInserirCliente = "INSERT INTO Clientes (NOME, TELEFONE, ENDERECO, NUMERO, BAIRRO, CIDADE, CEP) " +
-                                                 "VALUES (@NOME, @TELEFONE, @ENDERECO, @NUMERO, @BAIRRO, @CIDADE, @CEP)";
-                    SqlCommand commandInserirCliente = new SqlCommand(queryInserirCliente, connection);
-                    commandInserirCliente.Parameters.AddWithValue("@NOME", nome);
-                    commandInserirCliente.Parameters.AddWithValue("@TELEFONE", telefone);
-                    commandInserirCliente.Parameters.AddWithValue("@ENDERECO", endereco);
-                    commandInserirCliente.Parameters.AddWithValue("@NUMERO", numero);
-                    commandInserirCliente.Parameters.AddWithValue("@BAIRRO", bairro);
-                    commandInserirCliente.Parameters.AddWithValue("@CIDADE", cidade);
-                    commandInserirCliente.Parameters.AddWithValue("@CEP", cep);
-
-                    int rowsInserted = commandInserirCliente.ExecuteNonQuery();
-
-                    MessageBox.Show("Cliente cadastrado com sucesso.", "Sucesso");
-                }
-
-
-                string petNome1 = "";
-                string petRaca1 = "";
-                string petIdade1 = "";
-                string petNome2 = "";
-                string petRaca2 = "";
-                string petIdade2 = "";
-                string petNome3 = "";
-                string petRaca3 = "";
-                string petIdade3 = "";
-                string petNome4 = "";
-                string petRaca4 = "";
-                string petIdade4 = "";
-
-                petNome1 = txtPetNome1.Text;
-                petRaca1 = txtPetRaca1.Text;
-                petIdade1 = (txtPetIdade1.Text);
-                petNome2 = txtPetNome2.Text;
-                petRaca2 = txtPetRaca2.Text;
-                petIdade2 = (txtPetIdade2.Text);
-                petNome3 = txtPetNome3.Text;
-                petRaca3 = txtPetRaca3.Text;
-                petIdade3 = (txtPetIdade3.Text);
-                petNome4 = txtPetNome4.Text;
-                petRaca4 = txtPetRaca4.Text;
-                petIdade4 = (txtPetIdade4.Text);
-
-
-                string queryInserirPet = "INSERT INTO pets (NOME_1, RACA_1, IDADE_1,NOME_2, RACA_2, IDADE_2,NOME_3, RACA_3, IDADE_3,NOME_4, RACA_4, IDADE_4, ClienteID) " +
-                                             "VALUES (@Nome_1, @Raca_1, @Idade_1, @Nome_2, @Raca_2, @Idade_2, @Nome_3, @Raca_3, @Idade_3, @Nome_4, @Raca_4, @Idade_4 ,SCOPE_IDENTITY())";
-                SqlCommand commandInserirPet = new SqlCommand(queryInserirPet, connection);
-
-                commandInserirPet.Parameters.AddWithValue("@NOME_1", petNome1);
-                commandInserirPet.Parameters.AddWithValue("@RACA_1", petRaca1);
-                commandInserirPet.Parameters.AddWithValue("@IDADE_1", petIdade1);
-                commandInserirPet.Parameters.AddWithValue("@NOME_2", petNome2);
-                commandInserirPet.Parameters.AddWithValue("@RACA_2", petRaca2);
-                commandInserirPet.Parameters.AddWithValue("@IDADE_2", petIdade2);
-                commandInserirPet.Parameters.AddWithValue("@NOME_3", petNome3);
-                commandInserirPet.Parameters.AddWithValue("@RACA_3", petRaca3);
-                commandInserirPet.Parameters.AddWithValue("@IDADE_3", petIdade3);
-                commandInserirPet.Parameters.AddWithValue("@NOME_4", petNome4);
-                commandInserirPet.Parameters.AddWithValue("@RACA_4", petRaca4);
-                commandInserirPet.Parameters.AddWithValue("@IDADE_4", petIdade4);
-
-
-                int rowsInsertedPet = commandInserirPet.ExecuteNonQuery();
-
-
-
-
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Erro ao cadastrar cliente: " + ex.Message, "Erro");
-            }
-            finally
-            {
-                // Fecha a conexão com o banco de dados
-                connection.Close();
+                var pet = cliente.Pets[i];
+                petIds[i] = pet.Id;
+                nomes[i].Text = pet.Nome;
+                racas[i].Text = pet.Raca;
+                idades[i].Text = pet.Idade.ToString(CultureInfo.InvariantCulture);
             }
         }
+        AtualizarCamposPets();
+    }
 
-        private void textBoxPet2Raca_TextChanged(object sender, EventArgs e)
+    internal void PreencherTelefone(string telefone) => txtTelefone.Text = telefone;
+
+    private void AtualizarCamposPets()
+    {
+        if (camposPets is null) return;
+        if (!checkBox1.Checked) checkBox3.Checked = false;
+        if (!checkBox3.Checked) checkBox2.Checked = false;
+        checkBox3.Visible = checkBox1.Checked;
+        checkBox2.Visible = checkBox3.Checked;
+        bool[] visiveis = [checkBox1.Checked, checkBox3.Checked, checkBox2.Checked];
+        for (int i = 0; i < camposPets.Length; i++)
+            foreach (var campo in camposPets[i]) campo.Visible = visiveis[i];
+    }
+
+    private void checkBox1_CheckedChanged(object? sender, EventArgs e) => AtualizarCamposPets();
+    private void checkBox3_CheckedChanged(object? sender, EventArgs e) => AtualizarCamposPets();
+    private void checkBox2_CheckedChanged(object? sender, EventArgs e) => AtualizarCamposPets();
+
+    private async void cadastrar_Click(object? sender, EventArgs e)
+    {
+        Enabled = false;
+        UseWaitCursor = true;
+        try
         {
-
+            int quantidade = checkBox2.Checked ? 4 : checkBox3.Checked ? 3 : checkBox1.Checked ? 2 : 1;
+            var pets = new List<Pet>();
+            for (int i = 0; i < quantidade; i++)
+            {
+                if (!int.TryParse(idades[i].Text.Trim(), NumberStyles.None, CultureInfo.InvariantCulture, out int idade))
+                    throw new ArgumentException($"Informe a idade do pet {i + 1} em anos inteiros.");
+                pets.Add(new Pet(petIds[i], nomes[i].Text.Trim(), racas[i].Text.Trim(), idade));
+            }
+            var cliente = new Cliente(clienteId, txtNome.Text.Trim(), Validacao.Telefone(txtTelefone.Text),
+                txtEndereco.Text.Trim(), txtNumero.Text.Trim(), txtBairro.Text.Trim(),
+                txtCidade.Text.Trim(), Validacao.Digitos(txtCEP.Text), pets);
+            await new Repositorio().SalvarClienteAsync(cliente);
+            TelefoneSalvo = cliente.Telefone;
+            MessageBox.Show(this, "Cliente e pets salvos com sucesso.", "Cadastro");
+            DialogResult = DialogResult.OK;
         }
-
-        private void checkBox1_CheckedChanged(object sender, EventArgs e)
+        catch (Exception ex) when (ex is ArgumentException or InvalidOperationException or MySqlException)
         {
-            if (checkBox1.Checked)
-            {
-                label13.Visible = true;
-                label12.Visible = true;
-                label11.Visible = true;
-                txtPetNome2.Visible = true;
-                txtPetRaca2.Visible = true;
-                txtPetIdade2.Visible = true;
-                checkBox3.Visible = true;
-            }
-            else
-            {
-
-                label13.Visible = false;
-                label12.Visible = false;
-                label11.Visible = false;
-                txtPetNome2.Visible = false;
-                txtPetRaca2.Visible = false;
-                txtPetIdade2.Visible = false;
-                checkBox3.Visible = false;
-            }
+            MessageBox.Show(this, ex is MySqlException
+                ? "Não foi possível salvar. Nenhum Cadastro parcial foi gravado. Confira a conexão e o esquema no README."
+                : ex.Message, "Atenção", MessageBoxButtons.OK, MessageBoxIcon.Warning);
         }
-
-        private void label13_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void checkBox3_CheckedChanged(object sender, EventArgs e)
-        {
-            if (checkBox1.Checked)
-            {
-                label16.Visible = true;
-                label15.Visible = true;
-                label14.Visible = true;
-                txtPetNome3.Visible = true;
-                txtPetRaca3.Visible = true;
-                txtPetIdade3.Visible = true;
-                checkBox2.Visible = true;
-            }
-            else
-            {
-
-                label16.Visible = false;
-                label15.Visible = false;
-                label14.Visible = false;
-                txtPetNome3.Visible = false;
-                txtPetRaca3.Visible = false;
-                txtPetIdade3.Visible = false;
-                checkBox2.Visible = false;
-            }
-        }
-
-        private void checkBox2_CheckedChanged(object sender, EventArgs e)
-        {
-            if (checkBox1.Checked)
-            {
-                label19.Visible = true;
-                label17.Visible = true;
-                label18.Visible = true;
-                txtPetNome4.Visible = true;
-                txtPetRaca4.Visible = true;
-                txtPetIdade4.Visible = true;
-
-            }
-            else
-            {
-
-                label19.Visible = false;
-                label17.Visible = false;
-                label18.Visible = false;
-                txtPetNome4.Visible = false;
-                txtPetRaca4.Visible = false;
-                txtPetIdade4.Visible = false;
-
-            }
-        }
-
-        private void cadastro_Load(object sender, EventArgs e)
-        {
-
-        }
+        finally { Enabled = true; UseWaitCursor = false; }
     }
 }

@@ -1,6 +1,6 @@
-﻿namespace agendamento_banhotosa
+namespace agendamento_banhotosa
 {
-    partial class cadastro
+    partial class Cadastro
     {
         /// <summary>
         /// Required designer variable.
@@ -28,7 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(cadastro));
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Cadastro));
             txtPetIdade4 = new TextBox();
             txtPetRaca4 = new TextBox();
             txtPetNome4 = new TextBox();
@@ -219,7 +219,6 @@
             txtPetRaca2.Name = "txtPetRaca2";
             txtPetRaca2.Size = new Size(130, 26);
             txtPetRaca2.TabIndex = 94;
-            txtPetRaca2.TextChanged += textBoxPet2Raca_TextChanged;
             // 
             // txtPetNome2
             // 
@@ -265,7 +264,6 @@
             label13.TabIndex = 90;
             label13.Text = "Nome do pet:";
             label13.TextAlign = ContentAlignment.MiddleRight;
-            label13.Click += label13_Click;
             // 
             // txtCEP
             // 
@@ -547,7 +545,7 @@
             checkBox3.UseVisualStyleBackColor = true;
             checkBox3.CheckedChanged += checkBox3_CheckedChanged;
             // 
-            // cadastro
+            // Cadastro
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
@@ -597,9 +595,8 @@
             Controls.Add(label1);
             Controls.Add(titulo);
             Controls.Add(pictureBox1);
-            Name = "cadastro";
-            Text = "cadastro";
-            Load += cadastro_Load;
+            Name = "Cadastro";
+            Text = "Cadastro";
             ((System.ComponentModel.ISupportInitialize)pictureBox1).EndInit();
             ResumeLayout(false);
             PerformLayout();

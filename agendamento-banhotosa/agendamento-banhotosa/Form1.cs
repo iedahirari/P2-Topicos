@@ -1,154 +1,164 @@
-using System.Data.SqlClient;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
+using MySqlConnector;
 
-namespace agendamento_banhotosa
+namespace agendamento_banhotosa;
+
+public partial class Form1 : Form
 {
-    public partial class Form1 : Form
+    private Cliente? cliente;
+
+    private sealed record Horario(DateTime Inicio, Agendamento? Marcacao, string Descricao)
     {
-        private object connection;
+        public override string ToString() => Descricao;
+    }
 
-        public Form1()
+    public Form1()
+    {
+        InitializeComponent();
+        Text = "Banho e tosa ‚Äî Agendamento";
+        FormBorderStyle = FormBorderStyle.FixedDialog;
+        MaximizeBox = false;
+        txtTelefone.Mask = "";
+        txtTelefone.MaxLength = 20;
+        txtTelefone.AccessibleName = "Telefone do cliente com DDD";
+        comboBox1.DropDownStyle = ComboBoxStyle.DropDownList;
+        comboBox1.AccessibleName = "Pet do cliente consultado";
+        checkedListBox1.CheckOnClick = true;
+        checkedListBox1.AccessibleName = "Hor√°rios dispon√≠veis e agendamentos do cliente";
+        DateTimePicker.Format = DateTimePickerFormat.Custom;
+        DateTimePicker.CustomFormat = "dd/MM/yyyy";
+        DateTimePicker.MinDate = DateTime.Today;
+        label6.Text = "Data:";
+        label4.Text = "Seg. a s√°b., das 9h √†s 17h.";
+        button2.Text = "Atualizar cadastro";
+        button1.Click += NovoCadastro_Click;
+        button2.Click += AtualizarCadastro_Click;
+        txtTelefone.TextChanged += (_, _) => LimparConsulta();
+        DateTimePicker.ValueChanged += (_, _) => checkedListBox1.Items.Clear();
+        checkedListBox1.ItemCheck += Horario_ItemCheck;
+        var ordem = new Control[] { txtTelefone, button1, button2, comboBox1,
+            checkBox1, checkBox2, DateTimePicker, consultar, checkedListBox1, agendar, button3 };
+        for (int i = 0; i < ordem.Length; i++) ordem[i].TabIndex = i;
+    }
+
+    private void LimparConsulta()
+    {
+        cliente = null;
+        comboBox1.DataSource = null;
+        checkedListBox1.Items.Clear();
+    }
+
+    private void Horario_ItemCheck(object? sender, ItemCheckEventArgs e)
+    {
+        if (e.NewValue != CheckState.Checked) return;
+        var horario = (Horario)checkedListBox1.Items[e.Index];
+        if (horario.Inicio <= DateTime.Now ||
+            horario.Marcacao is { } marcacao && marcacao.ClienteId != cliente?.Id)
         {
-            InitializeComponent();
-            int idCliente;
+            e.NewValue = CheckState.Unchecked;
+            return;
         }
+        for (int i = 0; i < checkedListBox1.Items.Count; i++)
+            if (i != e.Index) checkedListBox1.SetItemChecked(i, false);
+    }
 
-        private void button1_Click(object sender, EventArgs e)
+    private async Task ExecutarAsync(Func<Task> acao)
+    {
+        Enabled = false;
+        UseWaitCursor = true;
+        try { await acao(); }
+        catch (Exception ex) when (ex is ArgumentException or InvalidOperationException or MySqlException)
         {
-
+            MessageBox.Show(this, ex is MySqlException
+                ? "N√£o foi poss√≠vel acessar o banco. Confira a conex√£o e o esquema descritos no README."
+                : ex.Message, "Aten√ß√£o", MessageBoxButtons.OK, MessageBoxIcon.Warning);
         }
+        finally { Enabled = true; UseWaitCursor = false; }
+    }
 
-        private void button3_Click(object sender, EventArgs e)
+    private async Task ConsultarAsync()
+    {
+        var telefone = Validacao.Telefone(txtTelefone.Text);
+        LimparConsulta();
+        var banco = new Repositorio();
+        cliente = await banco.ObterClienteAsync(telefone)
+            ?? throw new InvalidOperationException("Cliente n√£o cadastrado. Clique em Fazer cadastro.");
+        comboBox1.DataSource = cliente.Pets.ToArray();
+        var agenda = await banco.ConsultarAgendaAsync(DateTimePicker.Value);
+        foreach (var inicio in Validacao.Horarios(DateTimePicker.Value))
         {
-
+            var marcacao = agenda.SingleOrDefault(a => a.Inicio == inicio);
+            var descricao = marcacao is null ? "Dispon√≠vel"
+                : marcacao.ClienteId == cliente.Id ? $"{marcacao.NomePet} ‚Äî {marcacao.Servico} (agendado)" : "Ocupado";
+            if (inicio <= DateTime.Now) descricao = "Encerrado";
+            checkedListBox1.Items.Add(new Horario(inicio, marcacao, $"{inicio:HH:mm} ‚Äî {descricao}"));
         }
+        if (checkedListBox1.Items.Count == 0)
+            MessageBox.Show(this, "N√£o h√° atendimento aos domingos.", "Hor√°rios");
+    }
 
-        private void CarregarNomesPets(int idCliente)
+    private async void button1_Click(object? sender, EventArgs e) =>
+        await ExecutarAsync(ConsultarAsync);
+
+    private void NovoCadastro_Click(object? sender, EventArgs e)
+    {
+        using var tela = new Cadastro();
+        tela.PreencherTelefone(txtTelefone.Text);
+        if (tela.ShowDialog(this) == DialogResult.OK)
         {
-            // Crie uma lista para armazenar os nomes dos pets
-            List<string> nomesPets = new List<string>();
+            txtTelefone.Text = tela.TelefoneSalvo;
+            LimparConsulta();
+        }
+    }
 
-            // Conecte-se ao banco de dados
-            using (SqlConnection connection = new SqlConnection("server=localhost;database=agendamento;uid=root;pwd='1234'"))
+    private async void AtualizarCadastro_Click(object? sender, EventArgs e)
+    {
+        await ExecutarAsync(async () =>
+        {
+            var atual = await new Repositorio().ObterClienteAsync(txtTelefone.Text)
+                ?? throw new InvalidOperationException("Cliente n√£o encontrado pelo telefone.");
+            using var tela = new Cadastro(atual);
+            if (tela.ShowDialog(this) == DialogResult.OK) LimparConsulta();
+        });
+    }
+
+    private async void agendar_Click(object? sender, EventArgs e)
+    {
+        await ExecutarAsync(async () =>
+        {
+            if (cliente is null || comboBox1.SelectedItem is not Pet pet ||
+                checkedListBox1.CheckedItems.Count != 1)
+                throw new ArgumentException("Consulte o telefone e a data, selecione um pet e marque um hor√°rio.");
+            var horario = checkedListBox1.CheckedItems[0] as Horario
+                ?? throw new ArgumentException("Selecione um hor√°rio.");
+            if (horario.Marcacao is not null)
+                throw new ArgumentException("Este hor√°rio j√° est√° ocupado.");
+            var servico = (checkBox1.Checked, checkBox2.Checked) switch
             {
-                // Abra a conex„o
-                connection.Open();
+                (true, true) => "Banho e tosa",
+                (true, false) => "Banho",
+                (false, true) => "Tosa",
+                _ => ""
+            };
+            await new Repositorio().AgendarAsync(cliente.Id, pet.Id, horario.Inicio, servico);
+            MessageBox.Show(this, "Agendamento realizado com sucesso.", "Agendamento");
+            await ConsultarAsync();
+        });
+    }
 
-                // Consulta os nomes dos pets correspondentes ao idCliente
-                string query = "SELECT Nome FROM Pet WHERE IdCliente = @IdCliente";
-                SqlCommand command = new SqlCommand(query, connection);
-                command.Parameters.AddWithValue("@IdCliente", idCliente);
-
-                // Execute a consulta e leia os resultados
-                using (SqlDataReader reader = command.ExecuteReader())
-                {
-                    while (reader.Read())
-                    {
-                        string nomePet = reader.GetString(0);
-                        nomesPets.Add(nomePet);
-                    }
-                }
-
-                // Preencha o ComboBox com os nomes dos pets
-                //comboBox1.DataSource = nomesPets;
-                comboBox1.Items.AddRange(nomesPets.ToArray());
-
-                // Fecha a conex„o
-                connection.Close();
-            }
-        }
-
-        private void agendar_Click(object sender, EventArgs e)
+    private async void button3_Click(object? sender, EventArgs e)
+    {
+        await ExecutarAsync(async () =>
         {
-            string telefone = txtTelefone.Text;
-
-            // Verifica se o cliente est· cadastrado
-            if (VerificarClienteCadastrado(telefone))
-            {
-                // ObtÈm o idCliente com base no n˙mero de telefone
-                int idCliente = ObterIdCliente(telefone, connection);
-
-                // Verifica se o cliente est· cadastrado
-                if (idCliente > 0)
-                {
-                    // Carrega os nomes dos pets do cliente no ComboBox
-                    CarregarNomesPets(idCliente);
-                }
-
-
-                // ObtÈm a data, hor·rio e procedimento selecionados
-                DateTime dataSelecionada = DateTimePicker.Value.Date;
-                string horarioSelecionado = GetHorarioSelecionado(); // Implemente a lÛgica para obter o hor·rio selecionado
-                string procedimentoSelecionado = GetProcedimentoSelecionado(); // Implemente a lÛgica para obter o procedimento selecionado
-
-                // Conecte-se ao banco de dados
-                using (SqlConnection connection = new SqlConnection("server=localhost;database=agendamento;uid=root;pwd='1234'"))
-                {
-                    // Abre a conex„o
-                    connection.Open();
-
-                    // Consulta o ID do cliente com base no telefone
-                    idCliente = ObterIdCliente(telefone, connection);
-
-                    // Insere o agendamento na tabela de agendamentos
-                    string query = "INSERT INTO Agendamentos (IdCliente, NomePet, Data, Horario, Procedimento) " +
-                        "VALUES (@IdCliente, @NomePet, @Data, @Horario, @Procedimento)";
-                    SqlCommand command = new SqlCommand(query, connection);
-                    command.Parameters.AddWithValue("@IdCliente", idCliente);
-                    command.Parameters.AddWithValue("@NomePet", nomePetSelecionado);
-                    command.Parameters.AddWithValue("@Data", dataSelecionada);
-                    command.Parameters.AddWithValue("@Horario", horarioSelecionado);
-                    command.Parameters.AddWithValue("@Procedimento", procedimentoSelecionado);
-
-                    int rowsInserted = command.ExecuteNonQuery();
-
-                    if (rowsInserted > 0)
-                    {
-                        MessageBox.Show("Agendamento realizado com sucesso.", "Sucesso");
-                    }
-                    else
-                    {
-                        MessageBox.Show("Erro ao realizar o agendamento.", "Erro");
-                    }
-
-                    // Fecha a conex„o
-                    connection.Close();
-                }
-            }
-            else
-            {
-                MessageBox.Show("Cliente n„o cadastrado. … necess·rio realizar o cadastro.", "Aviso");
-
-                // Implemente a lÛgica para abrir a tela de cadastro do cliente ou redirecionar para ela
-            }
-        }
-
-        private int ObterIdCliente(string telefone, object connection)
-        {
-            throw new NotImplementedException();
-        }
-
-        private bool VerificarClienteCadastrado(string telefone)
-        {
-            // Conecte-se ao banco de dados
-            using (SqlConnection connection = new SqlConnection("server=localhost;database=agendamento;uid=root;pwd='1234'"))
-            {
-                // Abre a conex„o
-                connection.Open();
-
-                // Consulta o banco de dados para verificar se o cliente est· cadastrado
-                string query = "SELECT COUNT(*) FROM Clientes WHERE Telefone = @Telefone";
-                SqlCommand command = new SqlCommand(query, connection);
-                command.Parameters.AddWithValue("@Telefone", telefone);
-
-                int count = (int)command.ExecuteScalar();
-
-                // Retorna verdadeiro se o cliente est· cadastrado, caso contr·rio, retorna falso
-                return count > 0;
-            }
-        }
-
-
-
+            if (cliente is null || checkedListBox1.CheckedItems.Count != 1)
+                throw new ArgumentException("Consulte o cliente e marque o agendamento que deseja cancelar.");
+            var horario = checkedListBox1.CheckedItems[0] as Horario
+                ?? throw new ArgumentException("Selecione um hor√°rio.");
+            if (horario.Marcacao is not { } marcacao || marcacao.ClienteId != cliente.Id)
+                throw new ArgumentException("Selecione um agendamento deste cliente.");
+            if (MessageBox.Show(this, $"Cancelar o agendamento de {marcacao.NomePet} em {marcacao.Inicio:dd/MM/yyyy HH:mm}?",
+                "Confirmar cancelamento", MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes) return;
+            await new Repositorio().CancelarAsync(marcacao.Id, cliente.Id);
+            await ConsultarAsync();
+        });
     }
 }
