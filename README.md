@@ -1,6 +1,23 @@
-# P2-Tópicos — Agendamento de banho e tosa
+# Patas Limpas — Agendamento de banho e tosa
 
 Aplicativo de estudo em **C# e Windows Forms** para cadastrar clientes e pets, consultar horários, agendar banho/tosa e cancelar reservas. Os dados são persistidos em **MySQL ou MariaDB**, usando **MySqlConnector**.
+
+## Demonstração web
+
+A versão original em C# permanece neste repositório. A pasta [`docs/`](docs/) contém uma adaptação independente em HTML, CSS e JavaScript para experimentar o fluxo no navegador, inclusive no celular.
+
+**[Abrir demonstração](https://iedahirari.github.io/P2-Topicos-Banho-e-Tosa/)**
+
+Use apenas dados fictícios: cadastros e agendamentos ficam no `localStorage` deste navegador. Não há servidor, autenticação ou conexão com o banco da versão Windows. Os dados não são compartilhados entre dispositivos e podem ser apagados ao limpar os dados do navegador. A demonstração não deve ser usada para reservas reais; a gravação local também não oferece garantia de exclusão mútua entre abas simultâneas.
+
+1. Abra **Cliente e pets** e cadastre um cliente com um a quatro pets.
+2. Em **Agendar cuidado**, consulte seu telefone e uma data.
+3. Escolha pet, serviço e horário e confirme. O cancelamento fica na lista de agendamentos do cliente.
+4. Para editar, consulte o telefone e clique em **Editar cadastro**. O telefone e os pets existentes são preservados para manter os vínculos.
+
+Para executar localmente, a partir da raiz: `python -m http.server 8080 --directory docs`, e abra `http://localhost:8080`. Teste das regras web: `node --test tests/web.test.mjs` (Node.js 24).
+
+A publicação é feita por [`.github/workflows/pages.yml`](.github/workflows/pages.yml). Em **Settings → Pages → Source**, selecione **GitHub Actions**. O workflow testa as regras e publica somente `docs/` quando essa pasta muda na branch `main`.
 
 ## Funcionalidades
 
