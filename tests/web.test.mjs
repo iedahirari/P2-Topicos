@@ -1,0 +1,10 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {phone,validateCustomer,slots,reserve,cancel} from '../docs/domain.mjs';
+const c=()=>({id:'c1',phone:'11999990000',name:'Cliente fictício',address:'Rua de exemplo',number:'1',district:'Centro',city:'Cidade',zip:'12345678',pets:[{id:'p1',name:'Pipoca',breed:'SRD',age:2}]});
+const state=()=>({customers:[c()],appointments:[]});
+const now=new Date('2030-01-07T08:00');
+test('telefone e cadastro validam limites',()=>{assert.equal(phone('(11) 99999-0000'),'11999990000');assert.throws(()=>phone('abc11999990000'));assert.throws(()=>phone('123'));assert.equal(validateCustomer(c()).pets.length,1);for(const change of [{zip:'123'},{pets:[]},{pets:Array(5).fill(c().pets[0])},{pets:[{...c().pets[0],age:-1}]},{name:'<\n>'}])assert.throws(()=>validateCustomer({...c(),...change}));});
+test('agenda exclui domingo e datas inválidas',()=>{assert.equal(slots('2030-01-06').length,0);assert.equal(slots('2030-01-07').length,8);assert.equal(slots('2030-01-07')[7],'2030-01-07T16:00');assert.throws(()=>slots('2030-02-31'));});
+test('reserva valida cliente, pet, serviço, futuro e disponibilidade',()=>{const s=state();const start='2030-01-07T09:00';for(const args of [['x','p1',start,'Banho'],['c1','x',start,'Banho'],['c1','p1',start,'Outro'],['c1','p1','2030-01-06T09:00','Banho'],['c1','p1','2030-01-07T08:00','Banho'],['c1','p1','2030-01-07T09:30','Banho']])assert.throws(()=>reserve(s,...args,now));s.appointments.push(reserve(s,'c1','p1',start,'Banho',now));assert.throws(()=>reserve(s,'c1','p1',start,'Tosa',now));});
+test('cancelamento exige titular e futuro e libera vaga',()=>{const s=state();const a=reserve(s,'c1','p1','2030-01-07T09:00','Banho',now);s.appointments.push(a);assert.throws(()=>cancel(s,a.id,'outro',now));assert.throws(()=>cancel(s,a.id,'c1',new Date('2030-01-07T10:00')));s.appointments=cancel(s,a.id,'c1',now);assert.equal(s.appointments.length,0);assert.ok(reserve(s,'c1','p1',a.start,'Tosa',now));});
