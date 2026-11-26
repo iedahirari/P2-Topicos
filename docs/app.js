@@ -18,6 +18,7 @@ function tab(name) {
   for(const section of ['agenda','cadastro']) { $(`${section}-panel`).hidden=section!==name; $(`${section}-tab`).setAttribute('aria-pressed',String(section===name)); }
 }
 $('agenda-tab').onclick=()=>tab('agenda'); $('cadastro-tab').onclick=()=>tab('cadastro');
+$('open-cadastro').onclick=()=>tab('cadastro');
 const lookup=$('lookup'), form=$('customer-form');
 lookup.elements.date.value=localDay(); lookup.elements.date.min=localDay();
 function invalidate() {current=null;consulted=null;$('booking').hidden=true;$('empty').hidden=false;}
